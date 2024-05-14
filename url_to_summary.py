@@ -47,14 +47,19 @@ def get_article_details(url):
         elif soup.find('meta', attrs={'name': 'byline'}):
             author = soup.find('meta', attrs={'name': 'byline'})['content']
 
+        # Get the publication
+        publication = 'Unknown Publication'
+        if soup.find('meta', attrs={'property': 'og:site_name'}):
+            publication = soup.find('meta', attrs={'property': 'og:site_name'})['content']
+
         # Format author line
-        author_line = f"By {author}" if author != 'Unknown Author' else "By Unknown Author"
+        author_line = f"By {author} for {publication}" if author != 'Unknown Author' else "By Unknown Author for Unknown Publication"
 
         return title.strip(), author_line, description.strip()
 
     except requests.RequestException as e:
         print(f"Error fetching details for {url}: {e}")
-        return 'No Title', 'By Unknown Author', 'No Description'
+        return 'No Title', 'By Unknown Author for Unknown Publication', 'No Description'
 
 # Function to read URLs from a file
 def read_urls_from_file(filename):
