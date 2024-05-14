@@ -20,6 +20,9 @@ def get_article_details(url):
         else:
             title = 'No Title'
 
+        # Convert title to title case
+        title = title.title()
+
         # Get the description
         description = None
         if soup.find('meta', attrs={'name': 'description'}):
