@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import sys
 
-# Function to get the title and description of the article
+# Function to get the title, author, and description of the article
 def get_article_details(url):
     try:
         response = requests.get(url, timeout=10)
@@ -35,11 +35,23 @@ def get_article_details(url):
             else:
                 description = 'No Description'
 
-        return title.strip(), description.strip()
+        # Get the author
+        author = 'Unknown Author'
+        if soup.find('meta', attrs={'name': 'author'}):
+            author = soup.find('meta', attrs={'name': 'author'})['content']
+        elif soup.find('meta', attrs={'property': 'article:author'}):
+            author = soup.find('meta', attrs={'property': 'article:author'})['content']
+        elif soup.find('meta', attrs={'name': 'byline'}):
+            author = soup.find('meta', attrs={'name': 'byline'})['content']
+
+        # Format author line
+        author_line = f"By {author}" if author != 'Unknown Author' else "By Unknown Author"
+
+        return title.strip(), author_line, description.strip()
 
     except requests.RequestException as e:
         print(f"Error fetching details for {url}: {e}")
-        return 'No Title', 'No Description'
+        return 'No Title', 'By Unknown Author', 'No Description'
 
 # Function to read URLs from a file
 def read_urls_from_file(filename):
@@ -53,11 +65,12 @@ def read_urls_from_file(filename):
 def write_articles_to_file(urls, output_filename):
     with open(output_filename, 'w') as file:
         for url in urls:
-            title, description = get_article_details(url)
-            file.write(f"Title: {title}\n")
-            file.write(f"Description: {description}\n")
-            file.write(f"Link: {url}\n")
+            title, author, description = get_article_details(url)
             file.write("---\n")
+            file.write(f"{title}\n")
+            file.write(f"{author}\n")
+            file.write(f"\"{description}\"\n")
+            file.write(f"{url}\n")
 
 # Check if input filename is provided
 if len(sys.argv) < 2:
